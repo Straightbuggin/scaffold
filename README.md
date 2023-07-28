@@ -1,0 +1,2 @@
+# scaffold
+Rust Scaffolding project
