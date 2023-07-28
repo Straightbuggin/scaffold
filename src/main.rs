@@ -43,17 +43,6 @@ fn main() {
     let args = Args::parse();
     dbg!(&args);
 
-    let mut filename = args.output_dir.join(&args.title);
-    filename.set_extension("md");
-
-    let frontmatter = Frontmatter {
-        layout: args.layout,
-        tags: args.tags,
-        status: args.status,
-        title: args.title.clone(),
-        slug: slug::slugify(&args.title),
-    };
-    
     if !args.output_dir.exists() {
         let mut cmd = Args::command();
         cmd.error(
@@ -61,6 +50,39 @@ fn main() {
             format!(
                 "output directory `{}` doesn't exist",
                 args.output_dir
+            ),
+        )
+        .exit();
+    }
+    
+
+    let post_slug = slug::slugify(&args.title);
+    let mut filename = args.output_dir.join(&post_slug);
+    filename.set_extension("md");
+    
+    let frontmatter = Frontmatter {
+        layout: args.layout,
+        tags: args.tags,
+        status: args.status,
+        title: args.title.clone(),
+        slug: post_slug,
+    };
+
+    let yaml = serde_yaml::to_string(&frontmatter).unwrap();
+    let file_contents = format!(
+        "{yaml}
+    ---
+
+    # {}",
+        args.title
+    );
+
+    if let Err(error) = fs::write(&filename, file_contents){
+        let mut cmd = Args::command();
+        cmd.error(
+            ErrorKind::Io,
+            format!(
+                "failed to write file at `{filename}`\n\t{error}",
             ),
         )
             .exit();
