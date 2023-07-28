@@ -1,7 +1,7 @@
 use serde::Serialize;
 use camino::Utf8PathBuf;
 use clap::{error::ErrorKind, CommandFactory, Parser};
-use std::{fs, path::PathBuf};
+use std::{fs};
 
 /// Scaffold a new post for your blog
 #[derive(Parser, Debug)]
