@@ -3,13 +3,37 @@ use camino::Utf8PathBuf;
 use clap::{error::ErrorKind, CommandFactory, Parser};
 use std::{fs};
 
+#[derive(clap::ValueEnum, Clone, Default, Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum Layout {
+    /// blog post
+    #[default]
+    Post,
+    /// image gallery
+    Gallery,
+    /// code example
+    Code,
+}
+
+#[derive(clap::ValueEnum, Clone, Default, Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum PostStatus {
+    /// Draft, don't publish
+    #[default]
+    Draft,
+    /// Needs Review
+    NeedsReview,
+    /// Publishable
+    Publish,
+}
+
 /// Scaffold a new post for your blog
 #[derive(Parser, Debug)]
 #[clap(version)]
 struct Args {
     /// The layout the post should use
-    #[clap(short, long, default_value = "post")]
-    layout: String,
+    #[clap(short, long, default_value_t, value_enum)]
+    layout: Layout,
 
     /// Tags to include
     #[clap(short, long = "tag")]
@@ -22,8 +46,8 @@ struct Args {
     title: String,
 
     /// Should this post be published?
-    #[clap(short, long, default_value = "draft")]
-    status: String,
+    #[clap(short, long, default_value_t, value_enum)]
+    status: PostStatus,
 
     /// Where to put the file
     #[clap(short, long, default_value = "content")]
@@ -32,16 +56,16 @@ struct Args {
 
 #[derive(Debug, Serialize)]
 struct Frontmatter {
-    layout: String,
+    layout: Layout,
     tags: Vec<String>,
-    status: String,
+    status: PostStatus,
     title: String,
     slug: String,
 }
 
 fn main() {
     let args = Args::parse();
-    dbg!(&args);
+    
 
     if !args.output_dir.exists() {
         let mut cmd = Args::command();
